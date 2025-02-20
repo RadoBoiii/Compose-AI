@@ -13,7 +13,7 @@ The extension provides a chat interface for the Gemini API. To learn more about 
    ```sh
    npm install
    ```
-3. [Retrieve an API key](https://ai.google.dev/gemini-api/docs/api-key) and update [sidepanel/index.js](/Compose-AI/sidepanel/index.js) (only for testing).
+3. [Retrieve an API key](https://ai.google.dev/gemini-api/docs/api-key) and update [sidepanel/index.js](/sidepanel/index.js) (only for testing).
 4. Compile the JS bundle for the sidepanel implementation by running:
    ```sh
    npm run build
