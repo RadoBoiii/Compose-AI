@@ -1,6 +1,6 @@
-# Using the Gemini API in a Chrome Extension.
+# Building a Chrome Extension using Google Cloud API for text completion.
 
-This sample demonstrates how to use the Gemini Cloud API in a Chrome Extension.
+This Chrome extension leverages the Google Cloud API to provide advanced text completion capabilities, enhancing writing efficiency directly within your browser. Ideal for professionals and students alike, it seamlessly integrates AI-powered suggestions to streamline your writing process and boost productivity.
 
 ## Overview
 
