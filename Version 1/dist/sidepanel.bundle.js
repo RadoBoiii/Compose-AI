@@ -1380,7 +1380,7 @@
     }
 
     // Do not expose API key in production
-    const apiKey = 'AIzaSyCE8d4bHtEthf2KHKGUxh-KNhxUo8hWASI';
+    const apiKey = 'AIzaSyC1MFXrLiCdwQeEO4_sSGRb4Gfp-L2km7M';
 
     let genAI = null;
     let model = null;
@@ -1401,7 +1401,7 @@
       
       genAI = new GoogleGenerativeAI(apiKey);
       model = genAI.getGenerativeModel({
-        model: 'gemini-pro',
+        model: 'gemini-2.0-flash',
         generationConfig: {
           maxOutputTokens: 50,
           temperature: 0.4,
@@ -1421,7 +1421,23 @@
 
       try {
         showLoading();
-        const prompt = `Complete this sentence naturally: "${text}"`;
+        const prompt = `You are an intelligent text completion assistant. 
+Analyze the partial message: "${text}"
+
+Consider:
+- The emotional tone and intent behind these words
+- Common speech patterns and natural language flow
+- The likely context of this conversation
+- Multiple possible directions this sentence could go
+
+Complete this sentence in a way that:
+- Maintains the original tone and style
+- Feels natural and intuitive
+- Preserves any emotional nuances
+- Provides a helpful continuation that the user likely intended
+
+Only respond with the completed text, without explanations or alternative options.`;
+
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const completion = response.text();

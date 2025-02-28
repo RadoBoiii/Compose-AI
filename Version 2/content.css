@@ -1,0 +1,245 @@
+/* content.css for Compose AI */
+
+/* Define CSS variables for easy theming */
+:root {
+  /* Light mode variables */
+  --compose-bg-light: #00FFFF;
+  --compose-border-light: #7FFFD4;
+  --compose-text-light: #1e293b;
+  --compose-accent-light: #7c3aed;
+  --compose-accent-hover-light: #8b5cf6;
+  --compose-secondary-light: #f1f5f9;
+  --compose-error-light: #ef4444;
+  
+  /* Dark mode variables */
+  --compose-bg-dark: #1e1e2e;
+  --compose-border-dark: #313244;
+  --compose-text-dark: #cdd6f4;
+  --compose-accent-dark: #cba6f7;
+  --compose-accent-hover-dark: #f5c2e7;
+  --compose-secondary-dark: #313244;
+  --compose-error-dark: #f38ba8;
+}
+
+/* Ghost text styles - the core of the feature */
+.compose-ghost-text {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  color: #9ca3af;
+  background: transparent;
+  z-index: 1000;
+  white-space: pre;
+  overflow: hidden;
+  font-family: inherit;
+  opacity: 0.75;
+  transition: opacity 0.15s ease;
+}
+
+.compose-ghost-text.dark-mode {
+  color: #6b7280;
+}
+
+.compose-ghost-text-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* Hide ghost text when input is not focused */
+.compose-ghost-text-container:not(:focus-within) .compose-ghost-text {
+  display: none;
+}
+
+/* Tooltip styles */
+.compose-tooltip {
+  position: absolute;
+  background: var(--compose-bg-light);
+  border: 1px solid var(--compose-border-light);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  max-width: 350px;
+  z-index: 10000;
+  color: var(--compose-text-light);
+  margin-top: 6px;
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: translateY(-4px);
+  animation: compose-fade-in 0.3s forwards;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  user-select: none;
+  cursor: default;
+}
+
+/* Loading state */
+.compose-tooltip.loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(to bottom right, #f0f9ff, #e0f2fe);
+  border-color: #93c5fd;
+}
+
+/* Error state */
+.compose-tooltip.error {
+  background: linear-gradient(to bottom right, #fef2f2, #fee2e2);
+  border-color: #f87171;
+  color: #b91c1c;
+}
+
+/* Tooltip spinner */
+.compose-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid #e0e0e0;
+  border-top: 2.5px solid var(--compose-accent-light);
+  border-radius: 50%;
+  animation: compose-spin 0.8s linear infinite;
+}
+
+/* Tooltip positioning arrow */
+.compose-tooltip::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: inherit;
+  border: inherit;
+  border-width: 1px;
+  /* Default position (pointing up) */
+  top: -6px;
+  left: 16px;
+  border-right: 0;
+  border-bottom: 0;
+  transform: rotate(45deg);
+}
+
+/* When tooltip is above the input (pointing down) */
+.compose-tooltip.position-above {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.compose-tooltip.position-above::after {
+  top: auto;
+  bottom: -6px;
+  border: inherit;
+  border-width: 1px;
+  border-top: 0;
+  border-left: 0;
+  transform: rotate(45deg);
+}
+
+/* Completion text styling */
+.compose-completion {
+  color: var(--compose-accent-light);
+  font-weight: 500;
+  padding: 4px 8px;
+  margin: -4px -8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.compose-completion:hover {
+  background: var(--compose-secondary-light);
+}
+
+/* Helper text/hint */
+.compose-hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Alternative suggestions */
+.compose-alternatives {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--compose-border-light);
+}
+
+.compose-alt-item {
+  font-size: 13px;
+  color: #4b5563;
+  padding: 4px 8px;
+  margin: 0 -8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  user-select: none;
+  cursor: pointer;
+}
+
+.compose-alt-item:hover {
+  color: var(--compose-accent-light);
+  background: var(--compose-secondary-light);
+}
+
+/* Animations */
+@keyframes compose-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes compose-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .compose-tooltip {
+    background: var(--compose-bg-dark);
+    border-color: var(--compose-border-dark);
+    color: var(--compose-text-dark);
+  }
+
+  .compose-tooltip.loading {
+    background: linear-gradient(to bottom right, #172554, #1e3a8a);
+    border-color: #3b82f6;
+  }
+
+  .compose-tooltip.error {
+    background: linear-gradient(to bottom right, #7f1d1d, #991b1b);
+    border-color: #f87171;
+    color: #fecaca;
+  }
+
+  .compose-spinner {
+    border-color: #374151;
+    border-top-color: var(--compose-accent-dark);
+  }
+
+  .compose-completion {
+    color: var(--compose-accent-dark);
+  }
+
+  .compose-completion:hover {
+    background: var(--compose-secondary-dark);
+  }
+
+  .compose-hint {
+    color: #9ca3af;
+  }
+
+  .compose-alternatives {
+    border-top-color: var(--compose-border-dark);
+  }
+
+  .compose-alt-item {
+    color: #9ca3af;
+  }
+
+  .compose-alt-item:hover {
+    color: var(--compose-accent-dark);
+    background: var(--compose-secondary-dark);
+  }
+}
