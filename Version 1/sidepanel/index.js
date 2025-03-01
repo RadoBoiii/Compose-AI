@@ -5,7 +5,7 @@ import {
 } from '@google/generative-ai';
 
 // Do not expose API key in production
-const apiKey = 'AIzaSyC1MFXrLiCdwQeEO4_sSGRb4Gfp-L2km7M';
+const apiKey = 'GEMINI_API_KEY';
 
 let genAI = null;
 let model = null;
