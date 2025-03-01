@@ -2,244 +2,749 @@
 
 /* Define CSS variables for easy theming */
 :root {
-  /* Light mode variables */
-  --compose-bg-light: #00FFFF;
-  --compose-border-light: #7FFFD4;
-  --compose-text-light: #1e293b;
-  --compose-accent-light: #7c3aed;
-  --compose-accent-hover-light: #8b5cf6;
-  --compose-secondary-light: #f1f5f9;
-  --compose-error-light: #ef4444;
+    /* Light mode variables - Modern, professional color palette with red accent */
+    --compose-bg-light: #ffffff;
+    --compose-border-light: #e2e8f0;
+    --compose-text-light: #1e293b;
+    --compose-accent-light: #dc2626; /* Red accent */
+    --compose-accent-hover-light: #b91c1c; /* Darker red */
+    --compose-secondary-light: #f8fafc;
+    --compose-error-light: #ef4444;
+    --compose-success-light: #10b981;
+    --compose-warning-light: #f59e0b;
+    
+    /* Dark mode variables */
+    --compose-bg-dark: #0f172a;
+    --compose-border-dark: #334155;
+    --compose-text-dark: #f1f5f9;
+    --compose-accent-dark: #f87171; /* Red accent for dark mode */
+    --compose-accent-hover-dark: #ef4444;
+    --compose-secondary-dark: #1e293b;
+    --compose-error-dark: #f87171;
+    --compose-success-dark: #34d399;
+    --compose-warning-dark: #fbbf24;
+  }
   
-  /* Dark mode variables */
-  --compose-bg-dark: #1e1e2e;
-  --compose-border-dark: #313244;
-  --compose-text-dark: #cdd6f4;
-  --compose-accent-dark: #cba6f7;
-  --compose-accent-hover-dark: #f5c2e7;
-  --compose-secondary-dark: #313244;
-  --compose-error-dark: #f38ba8;
-}
-
-/* Ghost text styles - the core of the feature */
-.compose-ghost-text {
-  position: absolute;
-  pointer-events: none;
-  user-select: none;
-  color: #9ca3af;
-  background: transparent;
-  z-index: 1000;
-  white-space: pre;
-  overflow: hidden;
-  font-family: inherit;
-  opacity: 0.75;
-  transition: opacity 0.15s ease;
-}
-
-.compose-ghost-text.dark-mode {
-  color: #6b7280;
-}
-
-.compose-ghost-text-container {
-  position: relative;
-  display: inline-block;
-}
-
-/* Hide ghost text when input is not focused */
-.compose-ghost-text-container:not(:focus-within) .compose-ghost-text {
-  display: none;
-}
-
-/* Tooltip styles */
-.compose-tooltip {
-  position: absolute;
-  background: var(--compose-bg-light);
-  border: 1px solid var(--compose-border-light);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  padding: 12px;
-  border-radius: 10px;
-  font-size: 14px;
-  max-width: 350px;
-  z-index: 10000;
-  color: var(--compose-text-light);
-  margin-top: 6px;
-  transition: all 0.2s ease;
-  opacity: 0;
-  transform: translateY(-4px);
-  animation: compose-fade-in 0.3s forwards;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  user-select: none;
-  cursor: default;
-}
-
-/* Loading state */
-.compose-tooltip.loading {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: linear-gradient(to bottom right, #f0f9ff, #e0f2fe);
-  border-color: #93c5fd;
-}
-
-/* Error state */
-.compose-tooltip.error {
-  background: linear-gradient(to bottom right, #fef2f2, #fee2e2);
-  border-color: #f87171;
-  color: #b91c1c;
-}
-
-/* Tooltip spinner */
-.compose-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2.5px solid #e0e0e0;
-  border-top: 2.5px solid var(--compose-accent-light);
-  border-radius: 50%;
-  animation: compose-spin 0.8s linear infinite;
-}
-
-/* Tooltip positioning arrow */
-.compose-tooltip::after {
-  content: '';
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  background: inherit;
-  border: inherit;
-  border-width: 1px;
-  /* Default position (pointing up) */
-  top: -6px;
-  left: 16px;
-  border-right: 0;
-  border-bottom: 0;
-  transform: rotate(45deg);
-}
-
-/* When tooltip is above the input (pointing down) */
-.compose-tooltip.position-above {
-  margin-top: 0;
-  margin-bottom: 8px;
-}
-
-.compose-tooltip.position-above::after {
-  top: auto;
-  bottom: -6px;
-  border: inherit;
-  border-width: 1px;
-  border-top: 0;
-  border-left: 0;
-  transform: rotate(45deg);
-}
-
-/* Completion text styling */
-.compose-completion {
-  color: var(--compose-accent-light);
-  font-weight: 500;
-  padding: 4px 8px;
-  margin: -4px -8px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.compose-completion:hover {
-  background: var(--compose-secondary-light);
-}
-
-/* Helper text/hint */
-.compose-hint {
-  display: block;
-  margin-top: 8px;
-  font-size: 12px;
-  color: #6b7280;
-  font-style: italic;
-}
-
-/* Alternative suggestions */
-.compose-alternatives {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--compose-border-light);
-}
-
-.compose-alt-item {
-  font-size: 13px;
-  color: #4b5563;
-  padding: 4px 8px;
-  margin: 0 -8px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  user-select: none;
-  cursor: pointer;
-}
-
-.compose-alt-item:hover {
-  color: var(--compose-accent-light);
-  background: var(--compose-secondary-light);
-}
-
-/* Animations */
-@keyframes compose-fade-in {
-  from {
+  /* Ghost text styles - the core of the feature */
+  .compose-ghost-text {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
+    color: #94a3b8;
+    background: transparent;
+    z-index: 999998;
+    white-space: pre;
+    overflow: hidden;
+    font-family: inherit;
+    opacity: 0.8;
+    transition: opacity 0.15s ease;
+    padding: 0;
+    margin: 0;
+    border: none;
+    text-shadow: 0 0 0.5px rgba(148, 163, 184, 0.2); /* Subtle text shadow for better visibility */
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .logo-icon {
+    width: 2rem;
+    height: 2rem;
+    filter: drop-shadow(0px 1px 2px rgba(220, 38, 38, 0.2));
+  }
+  
+  .logo-text {
+    font-size: 1.75rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #dc2626, #ef4444);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  
+  /* Dark mode ghost text */
+  .compose-ghost-text.dark-mode {
+    color: #64748b;
+    text-shadow: 0 0 0.5px rgba(100, 116, 139, 0.2);
+  }
+  
+  /* Ghost text container */
+  .compose-ghost-text-container {
+    position: relative;
+    display: inline-block;
+  }
+  
+  /* Hide ghost text when input is not focused */
+  .compose-ghost-text-container:not(:focus-within) .compose-ghost-text {
+    display: none;
+  }
+  
+  /* Tooltip styles - loading, error and completion suggestions */
+  .compose-tooltip {
+    position: absolute;
+    background: var(--compose-bg-light);
+    border: 1px solid var(--compose-border-light);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    max-width: 350px;
+    z-index: 999999;
+    color: var(--compose-text-light);
+    margin-top: 6px;
+    transition: all 0.2s ease;
     opacity: 0;
     transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes compose-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  .compose-tooltip {
-    background: var(--compose-bg-dark);
-    border-color: var(--compose-border-dark);
-    color: var(--compose-text-dark);
+    animation: compose-fade-in 0.3s forwards;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    user-select: none;
+    cursor: default;
+    backdrop-filter: blur(5px); /* Slight blur for modern look */
   }
 
+  /* Modern hourglass loader styles */
+/* Modern hourglass loader styles */
+.compose-loader-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+  }
+  
+  .compose-hourglass-loader {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    transform-style: preserve-3d;
+    animation: hourglass-rotate 2.4s cubic-bezier(0.65, 0.05, 0.36, 1) infinite;
+  }
+  
+  @keyframes hourglass-rotate {
+    0% {
+      transform: rotateX(0deg) rotateY(0deg);
+    }
+    25% {
+      transform: rotateX(180deg) rotateY(0deg);
+    }
+    50% {
+      transform: rotateX(180deg) rotateY(180deg);
+    }
+    75% {
+      transform: rotateX(0deg) rotateY(180deg);
+    }
+    100% {
+      transform: rotateX(0deg) rotateY(0deg);
+    }
+  }
+  
+  .hourglass-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid var(--compose-accent-light);
+    animation: top-sand 2.4s linear infinite;
+  }
+  
+  .hourglass-middle {
+    position: absolute;
+    top: 8px;
+    left: 4px;
+    width: 12px;
+    height: 4px;
+    background-color: var(--compose-accent-light);
+    opacity: 0.7;
+  }
+  
+  .hourglass-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid var(--compose-accent-light);
+    animation: bottom-sand 2.4s linear infinite;
+  }
+  
+  @keyframes top-sand {
+    0%, 80% {
+      border-top: 10px solid var(--compose-accent-light);
+    }
+    90%, 100% {
+      border-top: 10px solid rgba(220, 38, 38, 0.3);
+    }
+  }
+  
+  @keyframes bottom-sand {
+    0%, 20% {
+      border-bottom: 10px solid rgba(220, 38, 38, 0.3);
+    }
+    30%, 100% {
+      border-bottom: 10px solid var(--compose-accent-light);
+    }
+  }
+  
+  .compose-loading-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--compose-text-light);
+  }
+  
+  /* Updated tooltip style for loading state */
   .compose-tooltip.loading {
-    background: linear-gradient(to bottom right, #172554, #1e3a8a);
-    border-color: #3b82f6;
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    background: linear-gradient(to bottom right, #fff5f5, #fed7d7);
+    border-color: #feb2b2;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08), 0 2px 4px rgba(220, 38, 38, 0.05);
   }
-
-  .compose-tooltip.error {
-    background: linear-gradient(to bottom right, #7f1d1d, #991b1b);
-    border-color: #f87171;
-    color: #fecaca;
+  
+  /* Primary completion section */
+  .compose-completion-section {
+    padding: 4px 0 8px 0;
   }
-
-  .compose-spinner {
-    border-color: #374151;
-    border-top-color: var(--compose-accent-dark);
-  }
-
+  
   .compose-completion {
-    color: var(--compose-accent-dark);
+    color: #dc2626;
+    font-weight: 500;
+    font-size: 15px;
+    line-height: 1.4;
   }
-
-  .compose-completion:hover {
-    background: var(--compose-secondary-dark);
-  }
-
-  .compose-hint {
-    color: #9ca3af;
-  }
-
+  
+  /* Redesigned alternatives section */
   .compose-alternatives {
-    border-top-color: var(--compose-border-dark);
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
-
+  
   .compose-alt-item {
-    color: #9ca3af;
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+  
+  .compose-alt-item:hover {
+    background-color: #fff1f1;
+  }
+  
+  .compose-alt-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background-color: #fecaca;
+    color: #dc2626;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+  
+  .compose-alt-text {
+    color: #4b5563;
+    font-size: 14px;
+  }
+  
+  /* Enhanced hint text */
+  .compose-hint {
+    display: block;
+    margin-top: 12px;
+    font-size: 12px;
+    color: #94a3b8;
+    font-style: italic;
+    text-align: center;
+    padding-top: 8px;
+    border-top: 1px dashed #f0f0f0;
+  }
+  
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .compose-tooltip.loading {
+      background: linear-gradient(to bottom right, #3c0d0d, #5a1010);
+      border-color: #9b2c2c;
+    }
+    
+    .compose-loading-text {
+      color: var(--compose-text-dark);
+    }
+    
+    .compose-alt-item:hover {
+      background-color: rgba(248, 113, 113, 0.15);
+    }
+    
+    .compose-alt-number {
+      background-color: rgba(248, 113, 113, 0.3);
+      color: #fecaca;
+    }
+    
+    .compose-alt-text {
+      color: #d1d5db;
+    }
+    
+    .compose-hint {
+      border-top-color: #374151;
+    }
   }
 
-  .compose-alt-item:hover {
-    color: var(--compose-accent-dark);
-    background: var(--compose-secondary-dark);
+  /* Tooltip header with actions */
+.compose-tooltip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0f0f0;
   }
-}
+  
+  /* Regenerate button */
+  .compose-regenerate-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #dc2626;
+    transition: background-color 0.2s;
+  }
+  
+  .compose-regenerate-btn:hover {
+    background-color: #fee2e2;
+  }
+  
+  /* Ghost text toggle */
+  .compose-ghost-toggle {
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    transition: all 0.2s;
+  }
+  
+  .compose-ghost-toggle:hover {
+    background-color: #f1f5f9;
+  }
+  
+  .compose-ghost-icon.active {
+    color: #dc2626;
+  }
+  
+  /* Primary completion section */
+  .compose-completion-section {
+    padding: 4px 0 8px 0;
+  }
+  
+  .compose-completion {
+    color: #dc2626;
+    font-weight: 500;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+  
+  /* Redesigned alternatives section */
+  .compose-alternatives {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .compose-alt-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 8px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+  
+  .compose-alt-item:hover {
+    background-color: #fff1f1;
+  }
+  
+  .compose-alt-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background-color: #fecaca;
+    color: #dc2626;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+  
+  .compose-alt-text {
+    color: #4b5563;
+    font-size: 14px;
+  }
+  
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .compose-tooltip-header {
+      border-bottom-color: #374151;
+    }
+    
+    .compose-regenerate-btn:hover {
+      background-color: rgba(248, 113, 113, 0.15);
+    }
+    
+    .compose-ghost-toggle:hover {
+      background-color: #334155;
+    }
+    
+    .compose-alt-item:hover {
+      background-color: rgba(248, 113, 113, 0.15);
+    }
+    
+    .compose-alt-number {
+      background-color: rgba(248, 113, 113, 0.3);
+      color: #fecaca;
+    }
+    
+    .compose-alt-text {
+      color: #d1d5db;
+    }
+  }
+
+/* .compose-loader-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+  }
+  
+  .compose-hourglass-loader {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    transform-style: preserve-3d;
+    animation: hourglass-rotate 2.4s cubic-bezier(0.65, 0.05, 0.36, 1) infinite;
+  }
+  
+  @keyframes hourglass-rotate {
+    0% {
+      transform: rotateX(0deg) rotateY(0deg);
+    }
+    25% {
+      transform: rotateX(180deg) rotateY(0deg);
+    }
+    50% {
+      transform: rotateX(180deg) rotateY(180deg);
+    }
+    75% {
+      transform: rotateX(0deg) rotateY(180deg);
+    }
+    100% {
+      transform: rotateX(0deg) rotateY(0deg);
+    }
+  }
+  
+  .hourglass-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid var(--compose-accent-light);
+    animation: top-sand 2.4s linear infinite;
+  }
+  
+  .hourglass-middle {
+    position: absolute;
+    top: 8px;
+    left: 4px;
+    width: 12px;
+    height: 4px;
+    background-color: var(--compose-accent-light);
+    opacity: 0.7;
+  }
+  
+  .hourglass-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid var(--compose-accent-light);
+    animation: bottom-sand 2.4s linear infinite;
+  }
+  
+  @keyframes top-sand {
+    0%, 80% {
+      border-top: 10px solid var(--compose-accent-light);
+    }
+    90%, 100% {
+      border-top: 10px solid rgba(220, 38, 38, 0.3);
+    }
+  }
+  
+  @keyframes bottom-sand {
+    0%, 20% {
+      border-bottom: 10px solid rgba(220, 38, 38, 0.3);
+    }
+    30%, 100% {
+      border-bottom: 10px solid var(--compose-accent-light);
+    }
+  }
+  
+  .compose-loading-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--compose-text-light);
+  }
+  
+  /* Updated tooltip style for loading state */
+  /*.compose-tooltip.loading {
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    background: linear-gradient(to bottom right, #fff5f5, #fed7d7);
+    border-color: #feb2b2;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08), 0 2px 4px rgba(220, 38, 38, 0.05);
+  }
+  
+  /* Dark mode support */
+  /*@media (prefers-color-scheme: dark) {
+    .compose-tooltip.loading {
+      background: linear-gradient(to bottom right, #3c0d0d, #5a1010);
+      border-color: #9b2c2c;
+    }
+    
+    .compose-loading-text {
+      color: var(--compose-text-dark);
+    }
+  } */
+  
+  /* Loading state */
+  /* .compose-tooltip.loading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(to bottom right, #fef2f2, #fee2e2); /* Red tinted loading state */
+    /*border-color: #fecaca;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08), 0 2px 4px rgba(220, 38, 38, 0.05);
+  }
+   */
+  /* Error state */
+  .compose-tooltip.error {
+    background: linear-gradient(to bottom right, #fef2f2, #fee2e2);
+    border-color: #fecaca;
+    color: #b91c1c;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.08), 0 2px 4px rgba(220, 38, 38, 0.05);
+  }
+  
+  /* Tooltip spinner */
+  /* .compose-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2.5px solid #fecaca;
+    border-top: 2.5px solid var(--compose-accent-light);
+    border-radius: 50%;
+    animation: compose-spin 0.8s linear infinite;
+  } */
+  
+  /* Tooltip positioning arrow */
+  .compose-tooltip::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: inherit;
+    border: inherit;
+    border-width: 1px;
+    /* Default position (pointing up) */
+    top: -6px;
+    left: 16px;
+    border-right: 0;
+    border-bottom: 0;
+    transform: rotate(45deg);
+    box-shadow: -2px -2px 2px rgba(0, 0, 0, 0.03);
+  }
+  
+  /* When tooltip is above the input (pointing down) */
+  .compose-tooltip.position-above {
+    margin-top: 0;
+    margin-bottom: 8px;
+  }
+  
+  .compose-tooltip.position-above::after {
+    top: auto;
+    bottom: -6px;
+    border: inherit;
+    border-width: 1px;
+    border-top: 0;
+    border-left: 0;
+    transform: rotate(45deg);
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.03);
+  }
+  
+  /* Completion text styling */
+  .compose-completion {
+    color: var(--compose-accent-light);
+    font-weight: 500;
+    padding: 6px 10px;
+    margin: -6px -10px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+  
+  .compose-completion:hover {
+    background: rgba(220, 38, 38, 0.08); /* Light red hover */
+  }
+  
+  /* Helper text/hint */
+  .compose-hint {
+    display: block;
+    margin-top: 10px;
+    font-size: 12px;
+    color: #64748b;
+    font-style: italic;
+  }
+  
+  /* Alternative suggestions */
+  .compose-alternatives {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--compose-border-light);
+  }
+  
+  .compose-alt-item {
+    font-size: 13px;
+    color: #475569;
+    padding: 6px 10px;
+    margin: 2px -10px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    user-select: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+  
+  .compose-alt-item:before {
+    content: attr(data-index);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: rgba(220, 38, 38, 0.1); /* Light red background */
+    color: var(--compose-accent-light);
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: bold;
+    margin-right: 8px;
+  }
+  
+  .compose-alt-item:hover {
+    color: var(--compose-accent-light);
+    background: rgba(220, 38, 38, 0.08); /* Light red hover */
+  }
+  
+  /* Animations */
+  @keyframes compose-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes compose-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    .compose-tooltip {
+      background: var(--compose-bg-dark);
+      border-color: var(--compose-border-dark);
+      color: var(--compose-text-dark);
+    }
+  
+    .compose-tooltip.loading {
+      background: linear-gradient(to bottom right, #450a0a, #7f1d1d); /* Dark red loading state */
+      border-color: #b91c1c;
+    }
+  
+    .compose-tooltip.error {
+      background: linear-gradient(to bottom right, #450a0a, #7f1d1d);
+      border-color: #ef4444;
+      color: #fca5a5;
+    }
+  
+    .compose-spinner {
+      border-color: #641e1e;
+      border-top-color: var(--compose-accent-dark);
+    }
+  
+    .compose-completion {
+      color: var(--compose-accent-dark);
+    }
+  
+    .compose-completion:hover {
+      background: rgba(248, 113, 113, 0.15); /* Light red hover for dark mode */
+    }
+  
+    .compose-hint {
+      color: #94a3b8;
+    }
+  
+    .compose-alternatives {
+      border-top-color: var(--compose-border-dark);
+    }
+  
+    .compose-alt-item {
+      color: #cbd5e1;
+    }
+    
+    .compose-alt-item:before {
+      background: rgba(248, 113, 113, 0.2); /* Light red background for dark mode */
+      color: var(--compose-accent-dark);
+    }
+  
+    .compose-alt-item:hover {
+      color: var(--compose-accent-dark);
+      background: rgba(248, 113, 113, 0.15); /* Light red hover for dark mode */
+    }
+  }

@@ -145,261 +145,667 @@ initializeExtension();
 
 /* Helper functions for UI components */
 function createTooltip(message, isLoading = false, isError = false, alternatives = []) {
-  if (!activeElement) return null;
-
-  try {
-    const tooltip = document.createElement('div');
-    tooltip.className = `compose-tooltip ${isLoading ? 'loading' : ''} ${isError ? 'error' : ''}`;
-    
-    if (isLoading) {
-      const spinner = document.createElement('div');
-      spinner.className = 'compose-spinner';
-      tooltip.appendChild(spinner);
-      tooltip.appendChild(document.createTextNode('Compose AI is thinking...'));
-      return tooltip;
-    }
-
-    if (isError) {
-      tooltip.appendChild(document.createTextNode(message));
-      return tooltip;
-    }
-
-    // Get the current word being typed
-    const element = activeElement;
-    const content = getEditorContent(element);
-    const cursorPos = getCursorPosition(element);
-    const textBeforeCursor = content.slice(0, cursorPos);
-    const currentWordMatch = textBeforeCursor.match(/\S+$/);
-    const currentWord = currentWordMatch ? currentWordMatch[0] : '';
-    const afterCursor = content.slice(cursorPos);
-    const cursorHasSpace = textBeforeCursor.endsWith(' ');
-
-    // Determine the last complete word
-    let lastCompleteWord = '';
-    if (cursorHasSpace) {
-      // If cursor is after a space, get the last word before the space
-      const words = textBeforeCursor.trim().split(/\s+/);
-      lastCompleteWord = words[words.length - 1] || '';
-    } else if (!currentWord) {
-      // If no current word and no space, get the last complete word
-      const words = textBeforeCursor.trim().split(/\s+/);
-      lastCompleteWord = words[words.length - 1] || '';
-    } else {
-      // If there's a current word, check if it's complete
-      const words = textBeforeCursor.slice(0, -currentWord.length).trim().split(/\s+/);
-      lastCompleteWord = words[words.length - 1] || '';
-    }
-
-    // Create a container for the completion text
-    const completionText = document.createElement('div');
-    completionText.className = 'compose-completion';
-    
-    let remainingText = '';
-    if (currentWord) {
-      // If we have a current suggestion and we're typing it
-      if (currentSuggestion && currentSuggestion.toLowerCase().includes(textBeforeCursor.toLowerCase().trim())) {
-        // Find where in the suggestion we currently are
-        const normalizedSuggestion = currentSuggestion.toLowerCase();
-        const normalizedTyped = textBeforeCursor.toLowerCase().trim();
-        const index = normalizedSuggestion.indexOf(normalizedTyped);
-        if (index !== -1) {
-          // Show only what's left after what we've typed
-          remainingText = currentSuggestion.slice(index + normalizedTyped.length);
-        }
-      } else {
-        // Split both the suggestion and typed text into words
-        const messageWords = message.split(' ');
-        const firstWord = messageWords[0];
+    if (!activeElement) return null;
+  
+    try {
+      const tooltip = document.createElement('div');
+      tooltip.className = `compose-tooltip ${isLoading ? 'loading' : ''} ${isError ? 'error' : ''}`;
+      
+      if (isLoading) {
+        // Create modern hourglass-like loader container
+        const loaderContainer = document.createElement('div');
+        loaderContainer.className = 'compose-loader-container';
         
-        if (firstWord.toLowerCase().startsWith(currentWord.toLowerCase())) {
-          // Show remaining part of the first word without space
-          const remainingPart = firstWord.slice(currentWord.length);
-          remainingText = remainingPart;
-          
-          // Add any following words with proper spacing
-          if (messageWords.length > 1) {
-            remainingText += ' ' + messageWords.slice(1).join(' ');
+        // Create the hourglass loader
+        const loader = document.createElement('div');
+        loader.className = 'compose-hourglass-loader';
+        
+        // Add the inner elements for the hourglass effect
+        const hourglassTop = document.createElement('div');
+        hourglassTop.className = 'hourglass-top';
+        
+        const hourglassMiddle = document.createElement('div');
+        hourglassMiddle.className = 'hourglass-middle';
+        
+        const hourglassBottom = document.createElement('div');
+        hourglassBottom.className = 'hourglass-bottom';
+        
+        // Assemble the loader
+        loader.appendChild(hourglassTop);
+        loader.appendChild(hourglassMiddle);
+        loader.appendChild(hourglassBottom);
+        loaderContainer.appendChild(loader);
+        
+        // Add to tooltip
+        tooltip.appendChild(loaderContainer);
+        
+        // Add thinking text
+        const loadingText = document.createElement('span');
+        loadingText.className = 'compose-loading-text';
+        loadingText.textContent = 'Compose AI is thinking...';
+        tooltip.appendChild(loadingText);
+        
+        return tooltip;
+      }
+  
+      if (isError) {
+        tooltip.appendChild(document.createTextNode(message));
+        return tooltip;
+      }
+  
+      // Header with actions
+      const tooltipHeader = document.createElement('div');
+      tooltipHeader.className = 'compose-tooltip-header';
+      
+      // Create regenerate button
+      const regenerateBtn = document.createElement('button');
+      regenerateBtn.className = 'compose-regenerate-btn';
+      regenerateBtn.title = 'Get new suggestions';
+      
+      // Create regenerate icon
+      const regenerateIcon = document.createElement('span');
+      regenerateIcon.className = 'compose-regenerate-icon';
+      regenerateIcon.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" 
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+          <path d="M3 3v5h5"></path>
+        </svg>
+      `;
+      regenerateBtn.appendChild(regenerateIcon);
+      
+      // Create ghost text toggle
+      const ghostTextToggle = document.createElement('div');
+      ghostTextToggle.className = 'compose-ghost-toggle';
+      ghostTextToggle.title = settings.useGhostText ? 'Ghost text enabled' : 'Ghost text disabled';
+      
+      const ghostIcon = document.createElement('span');
+      ghostIcon.className = `compose-ghost-icon ${settings.useGhostText ? 'active' : ''}`;
+      ghostIcon.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" 
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+        </svg>
+      `;
+      ghostTextToggle.appendChild(ghostIcon);
+      
+      // Add elements to header
+      tooltipHeader.appendChild(regenerateBtn);
+      tooltipHeader.appendChild(ghostTextToggle);
+      tooltip.appendChild(tooltipHeader);
+    
+      // Get the current word being typed
+      const element = activeElement;
+      const content = getEditorContent(element);
+      const cursorPos = getCursorPosition(element);
+      const textBeforeCursor = content.slice(0, cursorPos);
+      const currentWordMatch = textBeforeCursor.match(/\S+$/);
+      const currentWord = currentWordMatch ? currentWordMatch[0] : '';
+      const afterCursor = content.slice(cursorPos);
+      const cursorHasSpace = textBeforeCursor.endsWith(' ');
+  
+      // Determine the last complete word
+      let lastCompleteWord = '';
+      if (cursorHasSpace) {
+        // If cursor is after a space, get the last word before the space
+        const words = textBeforeCursor.trim().split(/\s+/);
+        lastCompleteWord = words[words.length - 1] || '';
+      } else if (!currentWord) {
+        // If no current word and no space, get the last complete word
+        const words = textBeforeCursor.trim().split(/\s+/);
+        lastCompleteWord = words[words.length - 1] || '';
+      } else {
+        // If there's a current word, check if it's complete
+        const words = textBeforeCursor.slice(0, -currentWord.length).trim().split(/\s+/);
+        lastCompleteWord = words[words.length - 1] || '';
+      }
+  
+      // Create a container for the completion text
+      const completionSection = document.createElement('div');
+      completionSection.className = 'compose-completion-section';
+      
+      const completionText = document.createElement('div');
+      completionText.className = 'compose-completion';
+      
+      let remainingText = '';
+      if (currentWord) {
+        // If we have a current suggestion and we're typing it
+        if (currentSuggestion && currentSuggestion.toLowerCase().includes(textBeforeCursor.toLowerCase().trim())) {
+          // Find where in the suggestion we currently are
+          const normalizedSuggestion = currentSuggestion.toLowerCase();
+          const normalizedTyped = textBeforeCursor.toLowerCase().trim();
+          const index = normalizedSuggestion.indexOf(normalizedTyped);
+          if (index !== -1) {
+            // Show only what's left after what we've typed
+            remainingText = currentSuggestion.slice(index + normalizedTyped.length);
           }
         } else {
-          // Add space if we're after a complete word and don't have a space
-          const needsSpace = !cursorHasSpace && lastCompleteWord !== '';
-          remainingText = (needsSpace ? ' ' : '') + message;
-        }
-      }
-    } else {
-      // No current word being typed
-      // Add space if we're after a complete word and don't have a space
-      const needsSpace = !cursorHasSpace && lastCompleteWord !== '';
-      remainingText = (needsSpace ? ' ' : '') + message;
-    }
-
-    if (debug) {
-      console.log('ComposeAI: Tooltip text analysis:', {
-        currentWord,
-        message,
-        remainingText,
-        textBeforeCursor,
-        cursorHasSpace,
-        lastCompleteWord,
-        currentLastWord: lastCompleteWord,
-        afterCursor,
-        currentSuggestion
-      });
-    }
-
-    if (!remainingText.trim()) {
-      return null;
-    }
-
-    // Don't trim the leading space if we need it
-    completionText.textContent = remainingText;
-    tooltip.appendChild(completionText);
-
-    // Add alternatives if available
-    if (alternatives && alternatives.length > 0) {
-      const altContainer = document.createElement('div');
-      altContainer.className = 'compose-alternatives';
-      
-      alternatives.forEach((alt, index) => {
-        const altText = document.createElement('div');
-        altText.className = 'compose-alt-item';
-        
-        let altRemaining = '';
-        if (currentWord) {
-          const altWords = alt.split(' ');
-          const firstWord = altWords[0];
+          // Split both the suggestion and typed text into words
+          const messageWords = message.split(' ');
+          const firstWord = messageWords[0];
           
           if (firstWord.toLowerCase().startsWith(currentWord.toLowerCase())) {
             // Show remaining part of the first word without space
             const remainingPart = firstWord.slice(currentWord.length);
-            altRemaining = remainingPart;
+            remainingText = remainingPart;
             
             // Add any following words with proper spacing
-            if (altWords.length > 1) {
-              altRemaining += ' ' + altWords.slice(1).join(' ');
+            if (messageWords.length > 1) {
+              remainingText += ' ' + messageWords.slice(1).join(' ');
+            }
+          } else {
+            // Add space if we're after a complete word and don't have a space
+            const needsSpace = !cursorHasSpace && lastCompleteWord !== '';
+            remainingText = (needsSpace ? ' ' : '') + message;
+          }
+        }
+      } else {
+        // No current word being typed
+        // Add space if we're after a complete word and don't have a space
+        const needsSpace = !cursorHasSpace && lastCompleteWord !== '';
+        remainingText = (needsSpace ? ' ' : '') + message;
+      }
+  
+      if (debug) {
+        console.log('ComposeAI: Tooltip text analysis:', {
+          currentWord,
+          message,
+          remainingText,
+          textBeforeCursor,
+          cursorHasSpace,
+          lastCompleteWord,
+          currentLastWord: lastCompleteWord,
+          afterCursor,
+          currentSuggestion
+        });
+      }
+  
+      if (!remainingText.trim()) {
+        return null;
+      }
+  
+      // Don't trim the leading space if we need it
+      completionText.textContent = remainingText;
+      completionSection.appendChild(completionText);
+      tooltip.appendChild(completionSection);
+  
+      // Add alternatives with improved styling
+      if (alternatives && alternatives.length > 0) {
+        const altContainer = document.createElement('div');
+        altContainer.className = 'compose-alternatives';
+        
+        alternatives.forEach((alt, index) => {
+          const altItem = document.createElement('div');
+          altItem.className = 'compose-alt-item';
+          
+          // Create number badge
+          const numBadge = document.createElement('span');
+          numBadge.className = 'compose-alt-number';
+          numBadge.textContent = index + 1;
+          
+          let altRemaining = '';
+          if (currentWord) {
+            const altWords = alt.split(' ');
+            const firstWord = altWords[0];
+            
+            if (firstWord.toLowerCase().startsWith(currentWord.toLowerCase())) {
+              // Show remaining part of the first word without space
+              const remainingPart = firstWord.slice(currentWord.length);
+              altRemaining = remainingPart;
+              
+              // Add any following words with proper spacing
+              if (altWords.length > 1) {
+                altRemaining += ' ' + altWords.slice(1).join(' ');
+              }
+            } else {
+              // Add space if needed
+              const needsSpace = !cursorHasSpace && lastCompleteWord !== '';
+              altRemaining = (needsSpace ? ' ' : '') + alt;
             }
           } else {
             // Add space if needed
             const needsSpace = !cursorHasSpace && lastCompleteWord !== '';
             altRemaining = (needsSpace ? ' ' : '') + alt;
           }
-        } else {
-          // Add space if needed
-          const needsSpace = !cursorHasSpace && lastCompleteWord !== '';
-          altRemaining = (needsSpace ? ' ' : '') + alt;
+  
+          if (altRemaining.trim()) {
+            // Create text content
+            const textSpan = document.createElement('span');
+            textSpan.className = 'compose-alt-text';
+            textSpan.textContent = altRemaining;
+            
+            // Store the complete text for selection
+            altItem.dataset.index = index + 1;
+            altItem.dataset.text = altRemaining;
+            
+            altItem.appendChild(numBadge);
+            altItem.appendChild(textSpan);
+            altContainer.appendChild(altItem);
+          }
+        });
+        
+        if (altContainer.children.length > 0) {
+          tooltip.appendChild(altContainer);
         }
-
-        if (altRemaining.trim()) {
-          altText.textContent = `${index + 1}: ${altRemaining}`;
-          altText.dataset.index = index;
-          altText.dataset.text = altRemaining;
-          altContainer.appendChild(altText);
+      }
+  
+      // Add usage hint
+      const hint = document.createElement('div');
+      hint.className = 'compose-hint';
+      hint.textContent = alternatives.length > 0 
+        ? 'Press Tab to accept or 1-3 for alternatives. Esc to dismiss' 
+        : 'Press Tab to accept or Esc to dismiss';
+      tooltip.appendChild(hint);
+  
+      // Update currentLastWord for future reference
+      currentLastWord = lastCompleteWord;
+  
+      // Support dark mode
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        tooltip.classList.add('dark-mode');
+      }
+  
+      // Add event listeners for the buttons
+      regenerateBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Remove current tooltip
+        tooltip.remove();
+        
+        // Show loading tooltip
+        const loadingTooltip = createTooltip('', true);
+        if (loadingTooltip) {
+          positionTooltip(loadingTooltip, activeElement);
+        }
+        
+        // Send request to regenerate suggestions
+        try {
+          const content = getEditorContent(activeElement);
+          const cursorPos = getCursorPosition(activeElement);
+          
+          sendMessageSafely({
+            type: 'TEXT_BOX_UPDATED',
+            textBoxContent: content,
+            cursorPosition: cursorPos,
+            context: getPageContext(activeElement),
+            hasTypedSinceCompletion: true,
+            regenerate: true // Flag to indicate regeneration
+          }).catch(error => {
+            console.log('ComposeAI: Failed to send regenerate request:', error);
+            if (loadingTooltip) {
+              loadingTooltip.remove();
+            }
+          });
+        } catch (error) {
+          console.log('ComposeAI: Error in regenerate handler:', error);
         }
       });
       
-      if (altContainer.children.length > 0) {
-        tooltip.appendChild(altContainer);
-      }
+      ghostTextToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Toggle ghost text setting
+        settings.useGhostText = !settings.useGhostText;
+        
+        // Save to storage
+        chrome.storage.sync.set({ useGhostText: settings.useGhostText });
+        
+        // Update icon
+        ghostIcon.className = `compose-ghost-icon ${settings.useGhostText ? 'active' : ''}`;
+        ghostTextToggle.title = settings.useGhostText ? 'Ghost text enabled' : 'Ghost text disabled';
+        
+        // Update UI based on new setting
+        tooltip.remove();
+        removeGhostText();
+        
+        // Trigger a new suggestion with the updated setting
+        const content = getEditorContent(activeElement);
+        const cursorPos = getCursorPosition(activeElement);
+          
+        sendMessageSafely({
+          type: 'TEXT_BOX_UPDATED',
+          textBoxContent: content,
+          cursorPosition: cursorPos,
+          context: getPageContext(activeElement),
+          hasTypedSinceCompletion: true
+        }).catch(error => {
+          console.log('ComposeAI: Failed to update after ghost text toggle:', error);
+        });
+      });
+  
+      return tooltip;
+    } catch (error) {
+      console.log('ComposeAI: Error creating tooltip:', error);
+      return null;
     }
-
-    // Add usage hint
-    const hint = document.createElement('div');
-    hint.className = 'compose-hint';
-    hint.textContent = alternatives.length > 0 
-      ? 'Press Tab to accept or 1-3 for alternatives. Esc to dismiss' 
-      : 'Press Tab to accept or Esc to dismiss';
-    tooltip.appendChild(hint);
-
-    // Update currentLastWord for future reference
-    currentLastWord = lastCompleteWord;
-
-    // Set tooltip styles for positioning
-    tooltip.style.position = 'absolute';
-    tooltip.style.zIndex = '999999';
-    tooltip.style.whiteSpace = 'pre';
-
-    // Support dark mode
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      tooltip.classList.add('dark-mode');
-    }
-
-    return tooltip;
-  } catch (error) {
-    console.log('ComposeAI: Error creating tooltip:', error);
-    return null;
   }
-}
+  
+  // Helper function to get page context
+  function getPageContext(element) {
+    return {
+      title: document.title,
+      description: document.querySelector('meta[name="description"]')?.content || '',
+      nearbyText: getNearbyText(element),
+      headings: Array.from(document.querySelectorAll('h1, h2, h3')).map(h => h.textContent).join(' | '),
+      formContext: element.form ? Array.from(element.form.elements).map(e => e.name || e.id || '').join(' ') : '',
+      inputContext: {
+        placeholder: element instanceof HTMLInputElement ? element.placeholder : '',
+        label: getInputLabel(element),
+        name: element instanceof HTMLInputElement ? element.name : '',
+        type: element instanceof HTMLInputElement ? element.type : 'text'
+      }
+    };
+  }
 
-function positionTooltip(tooltip, target) {
-  if (!tooltip || !target) {
-    console.log('ComposeAI: Cannot position tooltip - tooltip or target is null');
+
+/* Accurately positions a tooltip or ghost text element relative to cursor position
+ * Works across standard inputs, textareas, contentEditable elements, and rich text editors
+ * @param {HTMLElement} element - The tooltip or ghost text element to position
+ * @param {HTMLElement} target - The input element where text is being typed
+ * @param {Object} options - Optional configuration parameters
+ */
+function universalPositionElement(element, target, options = {}) {
+  if (!element || !target) {
+    console.log('ComposeAI: Cannot position element - element or target is null');
     return;
   }
 
   try {
-    const rect = target.getBoundingClientRect();
-    const cursorPos = getCursorPosition(target);
+    const defaults = {
+      offsetX: 0,         // Horizontal pixel offset
+      offsetY: 5,         // Vertical pixel offset
+      isGhostText: false, // Whether this is ghost text (vs tooltip)
+      zIndex: 999999      // z-index for the element
+    };
+    
+    const config = {...defaults, ...options};
+    
+    // Important metrics we need to calculate
+    let cursorLeft = 0;
+    let cursorTop = 0;
+    let cursorHeight = 0;
+    let scrollLeft = window.scrollX;
+    let scrollTop = window.scrollY;
+    
+    // Get the computed style of the target for accurate measurements
+    const computedStyle = window.getComputedStyle(target);
+    const fontSize = parseFloat(computedStyle.fontSize) || 16;
+    const lineHeight = parseFloat(computedStyle.lineHeight) || fontSize * 1.2;
+    
+    // Get basic positioning information
+    const targetRect = target.getBoundingClientRect();
+    
+    // Get current content and cursor position
     const content = getEditorContent(target);
+    const cursorPos = getCursorPosition(target);
     const textBeforeCursor = content.slice(0, cursorPos);
     
-    // Create a temporary span to measure text width
-    const measureSpan = document.createElement('span');
-    measureSpan.style.visibility = 'hidden';
-    measureSpan.style.position = 'absolute';
-    measureSpan.style.whiteSpace = 'pre';
-    measureSpan.style.font = window.getComputedStyle(target).font;
-    measureSpan.textContent = textBeforeCursor;
-    document.body.appendChild(measureSpan);
+    // --------------------------
+    // STEP 1: Detect input type and handle accordingly
+    // --------------------------
     
-    // Calculate position
-    const textWidth = measureSpan.getBoundingClientRect().width;
-    measureSpan.remove();
-    
-    // Account for padding and border in input elements
-    const style = window.getComputedStyle(target);
-    const paddingLeft = parseFloat(style.paddingLeft) || 0;
-    const borderLeft = parseFloat(style.borderLeftWidth) || 0;
-    
-    // Adjust for content editable or textarea
-    const leftOffset = target.isContentEditable ? 
-      rect.left : 
-      rect.left + paddingLeft + borderLeft;
-    
-    // Position the tooltip below the cursor
-    const tooltipTop = rect.bottom + window.scrollY + 5; // 5px gap
-    const tooltipLeft = leftOffset + textWidth;
-
-    tooltip.style.left = `${tooltipLeft}px`;
-    tooltip.style.top = `${tooltipTop}px`;
-    
-    document.body.appendChild(tooltip);
-
-    // Ensure tooltip is visible within viewport
-    const tooltipRect = tooltip.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    // Handle horizontal positioning
-    if (tooltipRect.right > viewportWidth) {
-      tooltip.style.left = `${viewportWidth - tooltipRect.width - 10}px`;
+    // Handle standard inputs and textareas
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+      // Get scroll position inside the input
+      scrollLeft = target.scrollLeft || 0;
+      scrollTop = target.scrollTop || 0;
+      
+      // Account for padding and borders
+      const paddingLeft = parseFloat(computedStyle.paddingLeft) || 0;
+      const paddingTop = parseFloat(computedStyle.paddingTop) || 0;
+      const borderLeft = parseFloat(computedStyle.borderLeftWidth) || 0;
+      const borderTop = parseFloat(computedStyle.borderTopWidth) || 0;
+      
+      // Create a measurement span with the same styling as the input
+      const measureSpan = document.createElement('span');
+      measureSpan.style.visibility = 'hidden';
+      measureSpan.style.position = 'absolute';
+      measureSpan.style.whiteSpace = 'pre';
+      measureSpan.style.font = computedStyle.font;
+      measureSpan.style.letterSpacing = computedStyle.letterSpacing;
+      measureSpan.style.wordSpacing = computedStyle.wordSpacing;
+      
+      // Measure text before cursor
+      if (target instanceof HTMLTextAreaElement) {
+        // For textareas, we need to handle line breaks
+        const lines = textBeforeCursor.split('\n');
+        const lastLine = lines[lines.length - 1];
+        
+        // Position calculation based on line count
+        const lineCount = lines.length - 1; // -1 because we're indexing from 0
+        
+        // Measure the width of the last line
+        measureSpan.textContent = lastLine;
+        document.body.appendChild(measureSpan);
+        const lastLineWidth = measureSpan.getBoundingClientRect().width;
+        document.body.removeChild(measureSpan);
+        
+        // Calculate cursor position
+        cursorLeft = targetRect.left + paddingLeft + borderLeft + lastLineWidth - scrollLeft;
+        cursorTop = targetRect.top + paddingTop + borderTop + (lineCount * lineHeight) - scrollTop;
+        cursorHeight = lineHeight;
+      } else {
+        // For single-line inputs
+        measureSpan.textContent = textBeforeCursor;
+        document.body.appendChild(measureSpan);
+        const textWidth = measureSpan.getBoundingClientRect().width;
+        document.body.removeChild(measureSpan);
+        
+        cursorLeft = targetRect.left + paddingLeft + borderLeft + textWidth - scrollLeft;
+        cursorTop = targetRect.top + paddingTop + borderTop - scrollTop;
+        cursorHeight = targetRect.height - (paddingTop * 2) - (borderTop * 2);
+      }
     }
-
-    // Handle vertical positioning
-    if (tooltipRect.bottom > viewportHeight) {
-      // Position above the target
-      tooltip.style.top = `${rect.top + window.scrollY - tooltipRect.height - 10}px`;
-      tooltip.classList.add('position-above');
+    // Handle contentEditable elements and rich text editors
+    else if (target.isContentEditable || 
+             target.getAttribute('role') === 'textbox' ||
+             target.classList.contains('ql-editor') || // Quill
+             target.classList.contains('ProseMirror') || // ProseMirror
+             target.classList.contains('CodeMirror') || // CodeMirror
+             target.classList.contains('monaco-editor') || // Monaco
+             target.classList.contains('ace_editor') || // Ace
+             target.closest('[contenteditable="true"]')) { // Catch-all for contenteditable
+      
+      // Find the accurate editor container
+      const editorContainer = target.getAttribute('role') === 'textbox' ? target :
+                             target.isContentEditable ? target :
+                             target.closest('[contenteditable="true"]') ||
+                             target.querySelector('.ql-editor') ||
+                             target.querySelector('.ProseMirror') ||
+                             target;
+      
+      // Get scroll position of the editor
+      scrollLeft = editorContainer.scrollLeft || 0;
+      scrollTop = editorContainer.scrollTop || 0;
+      
+      // Try to get cursor position using DOM selection
+      const selection = window.getSelection();
+      
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        
+        // Try to get client rects for precise positioning
+        const rects = range.getClientRects();
+        
+        if (rects && rects.length > 0) {
+          // Use the last rect for cursor position
+          const lastRect = rects[rects.length - 1];
+          cursorLeft = lastRect.right;
+          cursorTop = lastRect.top;
+          cursorHeight = lastRect.height || lineHeight;
+        } else {
+          // Fallback: Use offset calculation with selection
+          try {
+            // Clone the range to create a measurement
+            const preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents(editorContainer);
+            preCaretRange.setEnd(range.endContainer, range.endOffset);
+            
+            // Get text before cursor and measure it
+            const textBeforeCaret = preCaretRange.toString();
+            const lines = textBeforeCaret.split('\n');
+            const lastLine = lines[lines.length - 1];
+            const lineCount = lines.length - 1;
+            
+            // Measure the last line
+            const measureSpan = document.createElement('span');
+            measureSpan.style.visibility = 'hidden';
+            measureSpan.style.position = 'absolute';
+            measureSpan.style.whiteSpace = 'pre';
+            measureSpan.style.font = computedStyle.font;
+            document.body.appendChild(measureSpan);
+            measureSpan.textContent = lastLine;
+            const lastLineWidth = measureSpan.getBoundingClientRect().width;
+            document.body.removeChild(measureSpan);
+            
+            // Get editor dimensions
+            const editorRect = editorContainer.getBoundingClientRect();
+            
+            // Calculate position
+            cursorLeft = editorRect.left + lastLineWidth;
+            cursorTop = editorRect.top + (lineCount * lineHeight) - scrollTop;
+            cursorHeight = lineHeight;
+          } catch (e) {
+            console.log('ComposeAI: Error in selection-based positioning:', e);
+            // Ultimate fallback - use caret method if available
+            const containerRect = editorContainer.getBoundingClientRect();
+            if (typeof window.getCaretCoordinates === 'function') {
+              const coordinates = window.getCaretCoordinates(editorContainer, cursorPos);
+              cursorLeft = containerRect.left + coordinates.left;
+              cursorTop = containerRect.top + coordinates.top;
+              cursorHeight = coordinates.height || lineHeight;
+            } else {
+              // Last resort - place at editor start
+              cursorLeft = containerRect.left + 5;
+              cursorTop = containerRect.top + 5;
+              cursorHeight = lineHeight;
+            }
+          }
+        }
+      } else {
+        // No selection available - use editor position
+        cursorLeft = targetRect.left + 5;
+        cursorTop = targetRect.top + 5;
+        cursorHeight = lineHeight;
+      }
+    }
+    // Handle special editors with specific APIs (CodeMirror, Monaco, etc.)
+    else if (typeof target.CodeMirror !== 'undefined') {
+      // CodeMirror specific handling
+      const cm = target.CodeMirror;
+      const cursor = cm.getCursor();
+      const cursorCoords = cm.cursorCoords(cursor);
+      
+      cursorLeft = cursorCoords.left;
+      cursorTop = cursorCoords.top;
+      cursorHeight = cursorCoords.bottom - cursorCoords.top;
+    } else if (target.classList.contains('monaco-editor')) {
+      // Monaco editor handling
+      try {
+        const editor = target.querySelector('.monaco-editor')?.['_modelData']?.['model'];
+        if (editor) {
+          const position = editor.getPosition();
+          const editorCoords = editor._domElement.getBoundingClientRect();
+          const posCoords = editor.getScrolledVisiblePosition(position);
+          
+          cursorLeft = editorCoords.left + posCoords.left;
+          cursorTop = editorCoords.top + posCoords.top;
+          cursorHeight = posCoords.height || lineHeight;
+        } else {
+          // Fallback for Monaco
+          cursorLeft = targetRect.left + 5;
+          cursorTop = targetRect.top + 5;
+          cursorHeight = lineHeight;
+        }
+      } catch (e) {
+        console.log('ComposeAI: Error in Monaco editor positioning:', e);
+        cursorLeft = targetRect.left + 5;
+        cursorTop = targetRect.top + 5;
+        cursorHeight = lineHeight;
+      }
     } else {
-      // Position below the target
-      tooltip.classList.remove('position-above');
+      // Generic fallback for unknown editors
+      cursorLeft = targetRect.left + 5;
+      cursorTop = targetRect.top + 5;
+      cursorHeight = targetRect.height || lineHeight;
     }
+    
+    // --------------------------
+    // STEP 2: Position the element
+    // --------------------------
+    
+    // For ghost text, position at the cursor line
+    if (config.isGhostText) {
+      element.style.position = 'absolute';
+      element.style.zIndex = config.zIndex;
+      element.style.pointerEvents = 'none';
+      element.style.whiteSpace = 'pre';
+      element.style.top = `${cursorTop + window.scrollY}px`;
+      element.style.left = `${cursorLeft + config.offsetX + window.scrollX}px`;
+    } 
+    // For tooltips, position below the cursor line
+    else {
+      element.style.position = 'absolute';
+      element.style.zIndex = config.zIndex;
+      element.style.left = `${cursorLeft + config.offsetX + window.scrollX}px`;
+      element.style.top = `${cursorTop + cursorHeight + config.offsetY + window.scrollY}px`;
+      
+      // Add to DOM
+      document.body.appendChild(element);
+      
+      // Check if element is in viewport and adjust if needed
+      const elementRect = element.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // Handle horizontal overflow
+      if (elementRect.right > viewportWidth) {
+        element.style.left = `${viewportWidth - elementRect.width - 10 + window.scrollX}px`;
+      }
+      
+      // Handle vertical overflow
+      if (elementRect.bottom > viewportHeight) {
+        // Position above the cursor
+        element.style.top = `${cursorTop - elementRect.height - 5 + window.scrollY}px`;
+        element.classList.add('position-above');
+      } else {
+        element.classList.remove('position-above');
+      }
+    }
+    
+    // Add the element to the DOM if it's not already there
+    if (!document.body.contains(element)) {
+      document.body.appendChild(element);
+    }
+    
+    return element;
   } catch (error) {
-    console.log('ComposeAI: Error positioning tooltip:', error);
-    if (tooltip && document.body.contains(tooltip)) {
-      tooltip.remove();
+    console.log('ComposeAI: Error positioning element:', error);
+    // Add the element to the DOM anyway as fallback
+    if (element && !document.body.contains(element)) {
+      document.body.appendChild(element);
     }
+    return element;
   }
 }
+
+// Updated function to position tooltips
+function positionTooltip(tooltip, target) {
+    if (!tooltip || !target) {
+      console.log('ComposeAI: Cannot position tooltip - tooltip or target is null');
+      return;
+    }
+    
+    return universalPositionElement(tooltip, target, {
+      offsetX: 0,
+      offsetY: 8,
+      isGhostText: false,
+      zIndex: 999999
+    });
+  }
+  
 
 // Handle input events with error handling
 function handleInput(event) {
@@ -1093,135 +1499,223 @@ function resetSuggestionState() {
 
 // Create ghost text element
 function createGhostText(completion, lastWord, completeWord = '') {
-  try {
-    if (!completion || !activeElement) {
-      if (debug) {
-        console.log('ComposeAI: Ghost text creation skipped:', {
-          reason: !completion ? 'No completion text' : 'No active element',
-          completion,
-          activeElement
-        });
+    try {
+      if (!completion || !activeElement) {
+        if (debug) {
+          console.log('ComposeAI: Ghost text creation skipped:', {
+            reason: !completion ? 'No completion text' : 'No active element',
+            completion,
+            activeElement
+          });
+        }
+        return null;
       }
-      return null;
-    }
-
-    // Get the computed style of the input
-    const computedStyle = window.getComputedStyle(activeElement);
-    
-    // Create ghost text element
-    const ghostText = document.createElement('div');
-    ghostText.className = 'compose-ghost-text';
-    
-    // Get the current word being typed
-    const content = getEditorContent(activeElement);
-    const cursorPos = getCursorPosition(activeElement);
-    const textBeforeCursor = content.slice(0, cursorPos);
-    const currentWordMatch = textBeforeCursor.match(/\S+$/);
-    const currentWord = currentWordMatch ? currentWordMatch[0] : '';
-    const afterCursor = content.slice(cursorPos);
-    const cursorHasSpace = textBeforeCursor.endsWith(' ');
-
-    // Format the ghost text content
-    let ghostTextContent = '';
-    
-    if (currentWord && completeWord) {
-      // We have a complete word to match against
-      if (completeWord.toLowerCase().startsWith(currentWord.toLowerCase())) {
-        // Show remaining part of the first word
-        const remainingPart = completeWord.slice(currentWord.length);
-        ghostTextContent = remainingPart;
-        
-        // Add any following words from the completion
-        const followingWords = completion.split(' ').slice(1).join(' ');
-        if (followingWords) {
-          ghostTextContent += ' ' + followingWords;
+  
+      // Get the computed style of the input
+      const computedStyle = window.getComputedStyle(activeElement);
+      
+      // Create ghost text element
+      const ghostText = document.createElement('div');
+      ghostText.className = 'compose-ghost-text';
+      
+      // Get the current word being typed
+      const content = getEditorContent(activeElement);
+      const cursorPos = getCursorPosition(activeElement);
+      const textBeforeCursor = content.slice(0, cursorPos);
+      const currentWordMatch = textBeforeCursor.match(/\S+$/);
+      const currentWord = currentWordMatch ? currentWordMatch[0] : '';
+      const afterCursor = content.slice(cursorPos);
+      const cursorHasSpace = textBeforeCursor.endsWith(' ');
+  
+      // Format the ghost text content
+      let ghostTextContent = '';
+      
+      if (currentWord && completeWord) {
+        // We have a complete word to match against
+        if (completeWord.toLowerCase().startsWith(currentWord.toLowerCase())) {
+          // Show remaining part of the first word
+          const remainingPart = completeWord.slice(currentWord.length);
+          ghostTextContent = remainingPart;
+          
+          // Add any following words from the completion
+          const followingWords = completion.split(' ').slice(1).join(' ');
+          if (followingWords) {
+            ghostTextContent += ' ' + followingWords;
+          }
+        } else {
+          // Add space if needed
+          const needsSpace = !cursorHasSpace && textBeforeCursor.trim().length > 0;
+          ghostTextContent = (needsSpace ? ' ' : '') + completion;
         }
       } else {
         // Add space if needed
         const needsSpace = !cursorHasSpace && textBeforeCursor.trim().length > 0;
         ghostTextContent = (needsSpace ? ' ' : '') + completion;
       }
-    } else {
-      // Add space if needed
-      const needsSpace = !cursorHasSpace && textBeforeCursor.trim().length > 0;
-      ghostTextContent = (needsSpace ? ' ' : '') + completion;
-    }
-
-    // Don't show empty ghost text
-    if (!ghostTextContent.trim()) {
-      if (debug) {
-        console.log('ComposeAI: Ghost text creation cancelled - Empty content');
+  
+      // Don't show empty ghost text
+      if (!ghostTextContent.trim()) {
+        if (debug) {
+          console.log('ComposeAI: Ghost text creation cancelled - Empty content');
+        }
+        return null;
       }
+      
+      ghostText.textContent = ghostTextContent;
+      
+      // Copy relevant styles from the input for font consistency
+      const stylesToCopy = [
+        'font-family',
+        'font-size',
+        'font-weight',
+        'line-height',
+        'letter-spacing',
+        'text-transform',
+        'word-spacing'
+      ];
+  
+      stylesToCopy.forEach(style => {
+        ghostText.style[style] = computedStyle[style];
+      });
+  
+      // Ensure the ghost text is visible
+      ghostText.style.opacity = '0.8';
+      ghostText.style.display = 'inline';
+      
+      // Position the ghost text using the universal positioning function
+      universalPositionElement(ghostText, activeElement, {
+        offsetX: 0,
+        offsetY: 0,
+        isGhostText: true,
+        zIndex: 999998
+      });
+      
+      currentGhostText = ghostText;
+  
+      // Apply dark mode if needed
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        ghostText.classList.add('dark-mode');
+      }
+      
+      // Debug logging
+      if (debug) {
+        console.log('ComposeAI: Ghost text created:', {
+          content: ghostTextContent,
+          position: {
+            left: ghostText.style.left,
+            top: ghostText.style.top
+          }
+        });
+      }
+  
+      return ghostText;
+    } catch (error) {
+      console.log('ComposeAI: Error creating ghost text:', error);
       return null;
     }
-    
-    ghostText.textContent = ghostTextContent;
-    
-    // Copy relevant styles from the input
-    const stylesToCopy = [
-      'font-family',
-      'font-size',
-      'font-weight',
-      'line-height',
-      'letter-spacing',
-      'text-transform',
-      'word-spacing'
-    ];
-
-    stylesToCopy.forEach(style => {
-      ghostText.style[style] = computedStyle[style];
-    });
-
-    // Position the ghost text
-    const rect = activeElement.getBoundingClientRect();
-    
-    // Create a temporary span to measure text width
-    const measureSpan = document.createElement('span');
-    measureSpan.style.visibility = 'hidden';
-    measureSpan.style.position = 'absolute';
-    measureSpan.style.whiteSpace = 'pre';
-    stylesToCopy.forEach(style => {
-      measureSpan.style[style] = computedStyle[style];
-    });
-    measureSpan.textContent = textBeforeCursor;
-    document.body.appendChild(measureSpan);
-    
-    // Calculate position
-    const textWidth = measureSpan.getBoundingClientRect().width;
-    measureSpan.remove();
-
-    // Account for padding in input elements
-    const style = window.getComputedStyle(activeElement);
-    const paddingLeft = parseFloat(style.paddingLeft) || 0;
-    const borderLeft = parseFloat(style.borderLeftWidth) || 0;
-    
-    const leftOffset = activeElement.isContentEditable ? 
-      rect.left : 
-      rect.left + paddingLeft + borderLeft;
-    
-    // Position the ghost text
-    ghostText.style.position = 'absolute';
-    ghostText.style.zIndex = '999998';
-    ghostText.style.pointerEvents = 'none';
-    ghostText.style.whiteSpace = 'pre';
-    ghostText.style.top = `${rect.top + window.scrollY}px`;
-    ghostText.style.left = `${leftOffset + textWidth}px`;
-    
-    // Add to DOM
-    document.body.appendChild(ghostText);
-    currentGhostText = ghostText;
-
-    // Apply dark mode if needed
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      ghostText.classList.add('dark-mode');
-    }
-
-    return ghostText;
-  } catch (error) {
-    console.log('ComposeAI: Error creating ghost text:', error);
-    return null;
   }
-}
+// Helper for observing input field content and style changes
+function setupInputObserver(element) {
+    try {
+      if (!element) return;
+      
+      // Create a mutation observer to watch for content changes
+      const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          // If ghost text or tooltips are visible, update their position
+          if (currentGhostText && document.body.contains(currentGhostText)) {
+            universalPositionElement(currentGhostText, element, {
+              offsetX: 0,
+              offsetY: 0,
+              isGhostText: true,
+              zIndex: 999998
+            });
+          }
+          
+          const tooltips = document.querySelectorAll('.compose-tooltip');
+          tooltips.forEach(tooltip => {
+            if (document.body.contains(tooltip)) {
+              universalPositionElement(tooltip, element, {
+                offsetX: 0,
+                offsetY: 8,
+                isGhostText: false,
+                zIndex: 999999
+              });
+            }
+          });
+        }
+      });
+      
+      // Observe content changes, attribute changes, and subtree modifications
+      observer.observe(element, {
+        characterData: true,
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+      
+      return observer;
+    } catch (error) {
+      console.log('ComposeAI: Error setting up input observer:', error);
+      return null;
+    }
+  }
+  
+  // Handle window resize and scroll events for proper positioning
+  function setupGlobalPositioningListeners() {
+    // Debounce function for performance
+    function debounce(func, wait) {
+      let timeout;
+      return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+      };
+    }
+    
+    // Reposition function for all elements
+    const repositionElements = debounce(() => {
+      // Reposition ghost text if present
+      if (currentGhostText && document.body.contains(currentGhostText) && activeElement) {
+        universalPositionElement(currentGhostText, activeElement, {
+          offsetX: 0,
+          offsetY: 0,
+          isGhostText: true,
+          zIndex: 999998
+        });
+      }
+      
+      // Reposition tooltips if present
+      const tooltips = document.querySelectorAll('.compose-tooltip');
+      if (tooltips.length > 0 && activeElement) {
+        tooltips.forEach(tooltip => {
+          if (document.body.contains(tooltip)) {
+            universalPositionElement(tooltip, activeElement, {
+              offsetX: 0,
+              offsetY: 8,
+              isGhostText: false,
+              zIndex: 999999
+            });
+          }
+        });
+      }
+    }, 100);
+    
+    // Add event listeners
+    window.addEventListener('resize', repositionElements);
+    window.addEventListener('scroll', repositionElements, true);
+    
+    // Return a cleanup function
+    return () => {
+      window.removeEventListener('resize', repositionElements);
+      window.removeEventListener('scroll', repositionElements, true);
+    };
+  }
+  
+  // Initialize the positioning system
+  const cleanupPositioningListeners = setupGlobalPositioningListeners();
 
 // Remove ghost text safely
 function removeGhostText() {
@@ -1234,6 +1728,30 @@ function removeGhostText() {
     currentGhostText = null;
   }
 }
+
+// Add this function to check for redundant suggestions
+function isRedundantSuggestion(originalText, suggestion) {
+    // Remove leading/trailing whitespace
+    const cleanOriginal = originalText.trim().toLowerCase();
+    const cleanSuggestion = suggestion.trim().toLowerCase();
+    
+    // Check if the suggestion is already in the original text
+    if (cleanOriginal.includes(cleanSuggestion)) {
+      return true;
+    }
+    
+    // Check if parts of the suggestion repeat the end of the original text
+    // (for cases where suggestion starts with what user just typed)
+    const words = cleanOriginal.split(' ');
+    if (words.length >= 3) {
+      const lastThreeWords = words.slice(-3).join(' ');
+      if (cleanSuggestion.startsWith(lastThreeWords)) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
 
 // Add tooltip keyboard event handler
 function addTooltipKeydownHandler(tooltip, completion, lastWord) {
@@ -1347,6 +1865,16 @@ try {
       // Check if ghost text mode is enabled
       if (settings.useGhostText) {
         removeGhostText(); // Clear any existing ghost text
+        const content = getEditorContent(activeElement);
+        if (isRedundantSuggestion(content, request.completion)) {
+            if (debug) {
+                console.log('ComposeAI: Skipping redundant suggestion:', {
+                content,
+                suggestion: request.completion
+            });
+            }
+        return; // Skip showing this suggestion
+        }
         const ghostText = createGhostText(request.completion, request.lastWord, request.completion);
         if (ghostText) {
           // Store the current suggestion for future reference

@@ -5,28 +5,39 @@
   <script defer src="options.js" type="module"></script>
   <style>
     :root {
+      /* Modern, professional color palette */
+      --compose-primary: #dc2626; /* Red accent */
+      --compose-primary-dark: #b91c1c; /* Darker red */
+      --compose-primary-light: #fca5a5; /* Light red */
+      --compose-secondary: #f0f4f8;
+      --compose-accent: #ef4444; /* Another red tone */
+      --compose-accent-hover: #dc2626;
+      --compose-success: #10b981;
+      --compose-warning: #f59e0b;
+      --compose-error: #ef4444;
+      --compose-text-primary: #1e293b;
+      --compose-text-secondary: #64748b;
+      --compose-border: #e2e8f0;
       --compose-bg: #ffffff;
       --compose-bg-secondary: #f8fafc;
-      --compose-text: #0f172a;
-      --compose-text-secondary: #64748b;
-      --compose-accent: #7c3aed;
-      --compose-accent-hover: #8b5cf6;
-      --compose-border: #e2e8f0;
-      --compose-error: #dc2626;
-      --compose-success: #16a34a;
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --compose-bg: #1e1e2e;
-        --compose-bg-secondary: #313244;
-        --compose-text: #cdd6f4;
-        --compose-text-secondary: #bac2de;
-        --compose-accent: #cba6f7;
-        --compose-accent-hover: #f5c2e7;
-        --compose-border: #45475a;
-        --compose-error: #f38ba8;
-        --compose-success: #a6e3a1;
+        --compose-primary: #f87171; /* Red for dark mode */
+        --compose-primary-dark: #ef4444;
+        --compose-primary-light: #fca5a5;
+        --compose-secondary: #1e293b;
+        --compose-accent: #38bdf8;
+        --compose-accent-hover: #0ea5e9;
+        --compose-success: #34d399;
+        --compose-warning: #fbbf24;
+        --compose-error: #f87171;
+        --compose-text-primary: #f1f5f9;
+        --compose-text-secondary: #94a3b8;
+        --compose-border: #334155;
+        --compose-bg: #0f172a;
+        --compose-bg-secondary: #1e293b;
       }
     }
 
@@ -41,7 +52,7 @@
       width: 400px;
       padding: 1.5rem;
       background: var(--compose-bg);
-      color: var(--compose-text);
+      color: var(--compose-text-primary);
     }
 
     .container {
@@ -60,13 +71,13 @@
     .logo {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 0.75rem;
     }
 
     .logo-text {
       font-size: 1.75rem;
       font-weight: 700;
-      background: linear-gradient(90deg, var(--compose-accent), var(--compose-accent-hover));
+      background: linear-gradient(90deg, var(--compose-primary), var(--compose-accent));
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -77,11 +88,31 @@
       height: 1.75rem;
     }
 
+    /* Redesigned description area with better styling */
     .description {
-      color: var(--compose-text-secondary);
-      font-size: 0.9rem;
+      padding: 0.75rem 1rem;
+      background: var(--compose-secondary);
+      color: var(--compose-text-primary);
+      font-size: 0.95rem;
       line-height: 1.5;
       margin-bottom: 1rem;
+      border-radius: 0.75rem;
+      border-left: 4px solid var(--compose-primary);
+    }
+
+    .description strong {
+      color: var(--compose-primary);
+    }
+
+    .keycommand {
+      display: inline-block;
+      padding: 0.15rem 0.4rem;
+      background: var(--compose-bg);
+      border: 1px solid var(--compose-border);
+      border-radius: 0.25rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin: 0 0.1rem;
     }
 
     .settings-form {
@@ -97,9 +128,9 @@
     }
 
     .form-group label {
-      font-size: 0.9rem;
-      font-weight: 500;
-      color: var(--compose-text);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--compose-text-primary);
     }
 
     .form-group input[type="text"],
@@ -108,15 +139,15 @@
       border-radius: 0.5rem;
       border: 1px solid var(--compose-border);
       background: var(--compose-bg-secondary);
-      color: var(--compose-text);
+      color: var(--compose-text-primary);
       font-size: 0.9rem;
       transition: all 0.2s;
     }
 
     .form-group input:focus {
       outline: none;
-      border-color: var(--compose-accent);
-      box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+      border-color: var(--compose-primary);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
     }
 
     .form-group input[type="password"] {
@@ -127,19 +158,22 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0.5rem 0;
+      padding: 0.75rem 1rem;
+      background: var(--compose-bg-secondary);
+      border-radius: 0.5rem;
+      border: 1px solid var(--compose-border);
     }
 
     .toggle-group label {
-      font-size: 0.9rem;
-      color: var(--compose-text);
+      font-size: 0.95rem;
+      color: var(--compose-text-primary);
       font-weight: 500;
     }
 
     .toggle {
       position: relative;
       display: inline-block;
-      width: 40px;
+      width: 46px;
       height: 24px;
     }
 
@@ -158,40 +192,45 @@
       bottom: 0;
       background-color: var(--compose-bg-secondary);
       border: 1px solid var(--compose-border);
-      transition: .4s;
+      transition: .3s;
       border-radius: 24px;
     }
 
     .slider:before {
       position: absolute;
       content: "";
-      height: 16px;
-      width: 16px;
-      left: 3px;
-      bottom: 3px;
+      height: 18px;
+      width: 18px;
+      left: 2px;
+      bottom: 2px;
       background-color: var(--compose-text-secondary);
-      transition: .4s;
+      transition: .3s;
       border-radius: 50%;
     }
 
     input:checked + .slider {
-      background-color: var(--compose-accent);
-      border-color: var(--compose-accent);
+      background-color: var(--compose-primary);
+      border-color: var(--compose-primary);
     }
 
     input:focus + .slider {
-      box-shadow: 0 0 1px var(--compose-accent);
+      box-shadow: 0 0 1px var(--compose-primary);
     }
 
     input:checked + .slider:before {
-      transform: translateX(16px);
+      transform: translateX(22px);
       background-color: white;
     }
 
+    /* Redesigned slider containers with better styling */
     .slider-container {
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      background: var(--compose-bg-secondary);
+      border-radius: 0.5rem;
+      border: 1px solid var(--compose-border);
     }
 
     .slider-header {
@@ -201,74 +240,84 @@
     }
 
     .slider-header label {
-      font-size: 0.9rem;
-      font-weight: 500;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--compose-text-primary);
     }
 
     .slider-value {
-      color: var(--compose-text-secondary);
-      font-size: 0.8rem;
-      font-weight: 500;
+      color: var(--compose-accent);
+      font-size: 0.9rem;
+      font-weight: 600;
       min-width: 3rem;
       text-align: right;
+      padding: 0.2rem 0.5rem;
+      background: rgba(99, 102, 241, 0.1);
+      border-radius: 0.25rem;
     }
 
     .range-slider {
       -webkit-appearance: none;
       width: 100%;
-      height: 4px;
+      height: 6px;
       border-radius: 5px;
-      background: var(--compose-bg-secondary);
+      background: var(--compose-border);
       outline: none;
     }
 
     .range-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
-      background: var(--compose-accent);
+      background: var(--compose-primary);
       cursor: pointer;
       transition: all 0.2s;
-      border: none;
+      border: 2px solid white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
     .range-slider::-webkit-slider-thumb:hover {
-      background: var(--compose-accent-hover);
+      background: var(--compose-primary-dark);
       transform: scale(1.1);
     }
 
     .beta-tag {
       font-size: 0.65rem;
-      padding: 0.15rem 0.3rem;
+      padding: 0.15rem 0.4rem;
       background: var(--compose-accent);
       color: white;
       border-radius: 0.25rem;
       margin-left: 0.5rem;
       vertical-align: middle;
       font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
 
     .submit-button {
-      padding: 0.75rem;
+      padding: 0.85rem;
       border-radius: 0.5rem;
       border: none;
-      background: var(--compose-accent);
+      background: var(--compose-primary);
       color: white;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
-      margin-top: 0.5rem;
+      margin-top: 0.75rem;
+      box-shadow: 0 2px 4px rgba(99, 102, 241, 0.25);
     }
 
     .submit-button:hover {
-      background: var(--compose-accent-hover);
-      transform: translateY(-1px);
+      background: var(--compose-primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px rgba(99, 102, 241, 0.3);
     }
 
     .submit-button:active {
       transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(99, 102, 241, 0.2);
     }
 
     .submit-button:disabled {
@@ -312,19 +361,33 @@
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">
-        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#7c3aed"/>
-          <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <div class="logo-text">Compose AI</div>
-      </div>
+        <div class="logo">
+            <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Circular background -->
+              <circle cx="12" cy="12" r="11" fill="#fff" stroke="#dc2626" stroke-width="1"/>
+              
+              <!-- Modern 'C' stylized shape for Compose -->
+              <path d="M12 5.5C8.41 5.5 5.5 8.41 5.5 12C5.5 15.59 8.41 18.5 12 18.5" 
+                    stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/>
+              
+              <!-- AI element - stylized letter A -->
+              <path d="M13.5 18.5L16 11L18.5 18.5" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M14.5 16H17.5" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"/>
+              
+              <!-- Add gradient overlay -->
+              <circle cx="12" cy="12" r="11" fill="url(#circleGradient)" fill-opacity="0.1"/>
+              
+              <!-- Define gradient -->
+              <defs>
+                <radialGradient id="circleGradient" cx="12" cy="12" r="11" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#ef4444"/>
+                  <stop offset="1" stop-color="#dc2626"/>
+                </radialGradient>
+              </defs>
+            </svg>
+            <div class="logo-text">Compose AI</div>
+          </div>
     </div>
-
-    <p class="description">
-      Enhance your writing with AI-powered completions in any text field.
-      Press Tab to accept suggestions or use numbers 1-3 for alternatives.
-    </p>
 
     <form id="settingsForm" class="settings-form">
       <div class="toggle-group">
@@ -359,21 +422,21 @@
 
       <div class="divider"></div>
 
-      <div class="toggle-group">
+      <!-- <div class="toggle-group">
         <label for="waitForPause">Only suggest after typing pause</label>
         <label class="toggle">
           <input type="checkbox" id="waitForPause" name="waitForPause">
           <span class="slider"></span>
         </label>
-      </div>
+      </div> -->
 
-      <div class="toggle-group">
-        <label for="useGhostText">Use ghost text <span class="beta-tag">BETA</span></label>
+      <!-- <div class="toggle-group">
+        <label for="useGhostText">Implement ghost texts</label>
         <label class="toggle">
           <input type="checkbox" id="useGhostText" name="useGhostText" checked>
           <span class="slider"></span>
         </label>
-      </div>
+      </div> -->
 
       <button type="submit" id="saveButton" class="submit-button">Save Settings</button>
     </form>
